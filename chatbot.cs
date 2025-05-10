@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 
@@ -7,29 +9,36 @@ namespace POE_part_2
 {
     public class chatbot
     {
-        //first arraylist stores the answer of the user
-        ArrayList responses = new ArrayList();
-        //second arrayist filters the answer( by picking out keywords)
-        ArrayList ignore = new ArrayList();
-        //this arraylist id for keywords that the bot will pick up when the user asks their question
-        ArrayList keyWords = new ArrayList();
         //Delegate for user name
         public delegate string name();
+
+        // Random database for extra topic-based responses
+        private static Random random = new Random();
+
+        // Dictionary for keyword main responses (each base response has a keyword)
+        private Dictionary<string, List<string>> baseResponses = new Dictionary<string, List<string>>();
+
+        // Dictionary for extra randomized tips 
+        private Dictionary<string, List<string>> extraTips = new Dictionary<string, List<string>>();
+
+      
 
         public chatbot()
         {
             //Call all methods in here
             stored_responses();
-            ignore_words();
             ai_chat();
-            
-       
-           }//end of constructor
+
+            //Extra tips for the user from the random_resp class
+            random_resp tips = new random_resp();
+
+        }//end of constructor
+
 
         //method for the AI chatbot
         public void ai_chat()
         {
-            //Welcome user
+            //Welcome the user
             Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
             Console.WriteLine("WELCOME TO THE CYBERSECURITY AWARENESS BOT. I AM HERE TO HELP YOU STAY SAFE ONLINE");
@@ -54,7 +63,7 @@ namespace POE_part_2
             string username = getUserName();
 
             //AI response
-            Console.ForegroundColor = ConsoleColor.White;
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("AIChat:-> Hi there " + username + "!" + " How are you today?");
 
                 Console.ForegroundColor = ConsoleColor.White;
@@ -75,161 +84,159 @@ namespace POE_part_2
                         Console.WriteLine("AIChat:-> Thank you " + username + " for chatting! Stay safe online.");
                         break;
                     }
-                    //to get response
-                    string response = Response(input);
+
+                //This if statement will ask the user a follow-up question if the input is empty
+                //This is to keep the conversation going
+                if (string.IsNullOrWhiteSpace(input))
+                {
+                    Console.ForegroundColor = ConsoleColor.White;
+                    string followUpQuestion = followUps[random.Next(followUps.Count)];
+                    Console.WriteLine("AIChat:-> " + followUpQuestion);
+                }
+
+                //to get response
+                string response = Response(input);
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine(response);
 
-
-               
                 }
             }
-            
+        // This is the list of follow-up questions
+        private List<string> followUps = new List<string>()
+        {
+            "Is there anything you'd like to ask me about cybersecurity?",
+            "Remember, I'm here to help you stay safe online. Any questions?",
+            "Don't hesitate to ask about phishing, malware, or online privacy!"
+        };
 
-         
-            //then store responses using a method 
-            //keywords are also added to quickly identify the response and give it yo the user
-            private void stored_responses() {
-            keyWords.Add("you?");
-            responses.Add("AIChat:-> I am great thanks!\n"+"How can I assist you today?");
+        //then store responses using a method 
+        //In this method, the base responses are stored in a dictionary and they identify multiple keywords
+        private void stored_responses()
+        {
+            string youResponse = "AIChat:-> I am great thanks!\nHow can I assist you today?";
+            baseResponses["you?"] = new List<string> {youResponse};
 
-            keyWords.Add("purpose");
-            responses.Add("AIChat:-> I am designed to enhance cybersecurity awareness,\n" +
-                         " generate responses to security incidents and provide guidance on cybersecurity best practices\n" +
-                         " such as recognizing phishing attempts, securing passwords and avoiding social engineering attacks!");
+            string scamResponse = "AIChat:-> To avoid online scams, users should stay vigilant and skeptical of unsolicited messages,\n" +
+                " offers that seem too good to be true, or urgent requests for personal or financial information.\n" +
+                " Always verify the legitimacy of websites and emails by checking URLs carefully and looking\n" +
+                " for secure connections (https://). Avoid clicking on suspicious links or downloading unknown attachments.\n" +
+                " Use strong, unique passwords and enable two-factor authentication wherever possible.\n" +
+                " Regularly update software and security settings, and report suspicious activity to relevant platforms or authorities";
+            baseResponses["scam"] = new List<string> { scamResponse };
+            baseResponses["scams"] = new List<string> { scamResponse };
+            baseResponses["scam?"] = new List<string> { scamResponse };
+            baseResponses["scammed"] = new List<string> { scamResponse };
 
-            //in case the user asks a question
-            keyWords.Add("purpose?");
-            responses.Add("AIChat:-> I am designed to enhance cybersecurity awareness,\n" +
-                         " generate responses to security incidents and provide guidance on cybersecurity best practices\n" +
-                         " such as recognizing phishing attempts, securing passwords and avoiding social engineering attacks!");
+            string phishingResponse =
+            "AIChat:-> Phishing is a cyberattack where scammers trick you into revealing personal information,\n" +
+            "like passwords or credit card numbers, by pretending to be a trusted source (e.g., bank, email provider).";
+            baseResponses["phishing"] = new List<string> { phishingResponse };
+            baseResponses["phish"] = new List<string> { phishingResponse };
+            baseResponses["phishing?"] = new List<string> { phishingResponse };
 
-            keyWords.Add("protect");
-            responses.Add("AIChat:-> Use strong passwords, keep software up-to-date, and be cautious with emails.");
+            string malwareResponse = 
+            "AIChat:-> Malware is malicious software designed to damage,\n" +
+            " disrupt, or gain unauthorized access to computer systems.";
+            baseResponses["malware"] = new List<string>{malwareResponse};
+            baseResponses["malware?"] = new List<string> { malwareResponse };
+            baseResponses["malwares"] = new List<string> { malwareResponse };
 
-            keyWords.Add("ask");
-            responses.Add("AIChat:-> You can ask me about anything related to cybersecurity :)");
+            string onlineResponse =
+            "AIChat:-> To stay safe online, use strong passwords, enable two-factor authentication,\n"+
+            " avoid clicking on suspicious links, keep your software updated, \n" +
+            " and be cautious about sharing personal information.";
+            baseResponses["online"] = new List<string> {onlineResponse };
+            baseResponses["online?"] = new List<string> { onlineResponse };
 
-            keyWords.Add("browsing?");
-            responses.Add("AIChat:-> Safe browsing refers to the practice of using the internet securely\n" +
-                          " while protecting yourself from online threats such as malware, phishing attacks, and data theft.\n" +
-                          " It involves adopting habits and using tools that help minimize risks while surfing the web.");
+            string privacyResponse =
+            "AIChat:-> Limit personal info shared online, use strong passwords, VPNs, and adjust privacy settings.";
+            baseResponses["privacy"] = new List<string>{privacyResponse};
 
-            keyWords.Add("browsing");
-            responses.Add("AIChat:-> Safe browsing refers to the practice of using the internet securely\n" +
-                          " while protecting yourself from online threats such as malware, phishing attacks, and data theft.\n" +
-                          " It involves adopting habits and using tools that help minimize risks while surfing the web.");
+            string purposeResponse =
+            "AIChat:-> I'm here to boost your cybersecurity awareness and guide you on best practices!\n" +
+            " and to provide tips on cybersecurity threats like phishing, malware, and password safety.";
+            baseResponses["purpose"] = new List<string> {purposeResponse };
+            baseResponses["purpose?"] = new List<string> { purposeResponse };
 
+            string protectResponse =
+            "AIChat:-> To protect yourself online, use strong, unique passwords,\n" +
+            " enable two-factor authentication, avoid suspicious links or downloads,\n" +
+            " keep your software updated, and be cautious about sharing personal information.";
+            baseResponses["protect"] = new List<string>{protectResponse};
 
-            keyWords.Add("safe");
-            responses.Add("AIChat:-> There are many ways to stay safe online.\n " +
-                          " Here are some key cybersecurity tips:\n" +
-                          "~ Always use strong, unique passwords for each account.\n" +
-                          "~ Be cautious about what you share online\n" +
-                          " (avoid posting sensitive details like your address or phone number).\n" +
-                          "~ Adjust privacy settings on social media to control who can see your information.\n" +
-                          "~ Never click on suspicious links in emails or messages.");
+            string askResponse =
+            "AIChat:-> You can ask me about anything related to cybersecurity :)";
+            baseResponses["ask"] = new List<string>{askResponse};
 
-            keyWords.Add("phishing");
-            responses.Add("AIChat:-> Phishing is a type of cyberattack where scammers try to trick you into providing personal information,\n" +
-                          " such as passwords, credit card numbers, or other sensitive data. These attacks often come in the form of emails,\n" +
-                          " text messages,or fake websites that appear to be from legitimate companies or individuals");
+            string cyberResponse =
+            "AIChat:-> Cybersecurity is the practice of protecting computers,\n" +
+            " networks, and data from unauthorized access, attacks, or damage.";
+            baseResponses["cybersecurity"] = new List<string>{cyberResponse};
+            baseResponses["cybersecurity?"] = new List<string> { cyberResponse };
 
-            //in case the user asks a question
-            keyWords.Add("phishing?");
-            responses.Add("AIChat:-> Phishing is a type of cyberattack where scammers try to trick you into providing personal information,\n" +
-                          " such as passwords, credit card numbers, or other sensitive data. These attacks often come in the form of emails,\n" +
-                          " text messages,or fake websites that appear to be from legitimate companies or individuals");
+            string passwordResponse =
+            "AIChat:-> A strong password is a combination of letters, numbers, and symbols,\n" +
+            " typically at least 12 characters long, and not easily guessable.\n" +
+            " Avoid using personal information like birthdays or common words.";
+            baseResponses["password"] = new List<string>{passwordResponse};
+            baseResponses["password?"] = new List<string> { passwordResponse };
+            baseResponses["passwords"] = new List<string> { passwordResponse };
 
-            keyWords.Add("cybersecurity");
-            responses.Add("AIChat:-> Cybersecurity is the practice of protecting computer systems, networks, and data from digital threats,\n" +
-                          " such as hacking, malware, phishing, and other cyberattacks. It involves using technologies, processes,\n" +
-                          " and best practices to prevent unauthorized access, data breaches, and damage to sensitive information.");
-            //in case the user asks a question
-            keyWords.Add("cybersecurity?");
-            responses.Add("AIChat:-> Cybersecurity is the practice of protecting computer systems, networks, and data from digital threats,\n" +
-                          " such as hacking, malware, phishing, and other cyberattacks. It involves using technologies, processes,\n" +
-                          " and best practices to prevent unauthorized access, data breaches, and damage to sensitive information.");
+            string attackResponse = "AIChat:-> Cyber attacks are attempts to steal, damage, or disrupt data or systems.";
+            baseResponses["attacks"] = new List<string>{attackResponse};
+            baseResponses["attack"] = new List<string> { attackResponse };
 
-            keyWords.Add("thank");
-            responses.Add("AIChat:-> Always glad to help! Let me know if you need anything :)");
+            string injectionResponse =
+            "AIChat:-> SQL injection is a code injection technique that exploits a security vulnerability in an application's software.\n" +
+            " lets attackers manipulate databases by inserting malicious queries.";
+            baseResponses["injection"] = new List<string>{injectionResponse};
+            baseResponses["SQL injection"] = new List<string> { injectionResponse };
 
-            keyWords.Add("thanks");
-            responses.Add("AIChat:-> Always glad to help! Let me know if you need anything :)");
-
-            keyWords.Add("password");
-            responses.Add("AIChat:-> A strong password is a secure and hard-to-guess combination\n" +
-                          " of characters that helps protect your accounts and data from hackers.\n" +
-                         " A good password should be long, complex, and unique.");
-
-            keyWords.Add("attacks");
-            responses.Add("AIChat:-> Different Types of Cyber Attacks: \n" +
-                          " Phishing – Tricking users into revealing personal information through fake emails or websites.\n" +
-                          " Malware – Malicious software like viruses, worms, and ransomware that harm systems.\n" +
-                          " Ransomware – Attackers lock your files and demand payment to unlock them.\n" +
-                          " SQL Injection – Inserting harmful SQL code to gain access to databases.\n" +
-                          " Denial of Service (DoS) & Distributed DoS (DDoS) – Overloading a system to make it unavailable.\n" +
-                          " Man-in-the-Middle (MitM) Attack – Hackers intercept communication between two parties.\n" +
-                          " Brute Force Attack – Repeatedly guessing passwords until access is gained.\n" +
-                          " Zero-Day Exploit – Attacking a software vulnerability before it's patched.\n" +
-                          " Spyware – Software that secretly collects your data without permission.\n" +
-                          " Trojan Horse – Malicious software disguised as a legitimate program.");
-
-
-            keyWords.Add("injection");
-            responses.Add("AIChat:-> SQL injection is a type of cyber attack where hackers manipulate SQL \n" +
-                          " queries to gain unauthorized access to a database.\n" +
-                          " This is done by inserting malicious SQL code into input fields, which can allow attackers to\n" +
-                          " bypass authentication, retrieve sensitive data, modify databases, or even delete entire tables.");
-
+            string thanksResponse =
+            "AIChat:-> Always glad to help! Let me know if you need anything :)";
+            baseResponses["thank"] = new List<string> {thanksResponse};
+            baseResponses["thanks"] = new List<string> { thanksResponse };
         }
 
         //method for ignore words
-        private void ignore_words()
+        // Words to ignore during keyword filtering
+        private List<string> ignoreWords = new List<string>
         {
-            ignore.Add("tell");
-            ignore.Add("Tell");
-            ignore.Add("online");
-            ignore.Add("online?");
-            ignore.Add("can");
-            ignore.Add("i");
-            ignore.Add("create");
-            ignore.Add("I");
-            ignore.Add("stay");
-            ignore.Add("me");
-            ignore.Add("about");
-            ignore.Add("what");
-            ignore.Add("is");
-            ignore.Add("how");
-            ignore.Add("your");
-            
-        }//end of ignore_words method
-    
-            private string Response(string input)
+            "tell", "online", "can", "i", "create", "stay", "me", "about", "what", "is", "how", "your"
+        };
+        //end of ignore_words method
+
+        
+
+        private string Response(string input)
         {
-            string[] words = input.Split(' ');
-            ArrayList filteredWords = new ArrayList();
+            string[] words = input.ToLower().Split(' ');
+            var filteredWords = words
+                .Select(word => new string(word.Where(char.IsLetterOrDigit).ToArray()))
+                .Where(word => !ignoreWords.Contains(word))
+                .ToList();
 
-            // Filter out ignored words
-            foreach (string word in words)
+            foreach (var word in filteredWords)
             {
-                if (!ignore.Contains(word))
+                if (baseResponses.ContainsKey(word))
                 {
-                    filteredWords.Add(word);
-                }
-            }//end of foreach 
+                    string baseReply = baseResponses[word][random.Next(baseResponses[word].Count)];
+                    string extraReply = "";
 
-            // Check if the keyword matches in responses
-            for (int i = 0; i < keyWords.Count; i++)
-            {
-                if (filteredWords.Contains(keyWords[i]))
-                {
-                    return responses[i].ToString();
+                    if (extraTips.ContainsKey(word))
+                    {
+                        extraReply = "\n\nExtra Tip: " + extraTips[word][random.Next(extraTips[word].Count)];
+                    }
+
+
+                    return baseReply + extraReply;
                 }
             }
 
-            return "I can only answer to questions related to Cybersecurity. Please ask me something related to cybersecurity :)";
-        }//end of response method
-    }//end of class
+            return "AIChat:-> I'm sorry, I don't understand that. Can you please rephrase your question?\n" +
+                   followUps[random.Next(followUps.Count)];
+        }
+         
+}//end of class
 }//end of namespace
 

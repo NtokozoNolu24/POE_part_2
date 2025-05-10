@@ -19,7 +19,12 @@ namespace POE_part_2
            
             //Create an instance for AI chatbot
             new chatbot() { };
-           
+
+            //Create an instance class for memory and recall 
+            new memory() { };
+
+            //create an instance class for random responses
+            new random_resp() { };
         }
     }
     }
