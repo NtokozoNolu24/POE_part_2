@@ -12,16 +12,21 @@ answer security-related questions as well as inform them about possible threats 
 6. [Installation](#installation)
 
 ## Project Details
-Project name: POE_part_1_practice   
+Project name: POE_part_2   
 Netframe: 4.7.2    
 Template: Console App C# Netframework
 
 ## Features
--Replies to cybersecurity related questions or queries.  
--Users are allowed to leave the chatbot anytime.  
--Filters out unnecessary words and focuses on key words.  
--Covers various cybersecurity topics such as phishing, online safety and password security.   
--Contains voice greeting                                                                                                  
+- Replies to cybersecurity related questions or queries.
+- Personalized interaction using the user's name.
+- ASCII-art styled welcome logo for visual appeal.
+- Allows users to leave the chatbot anytime by typing `"leave"`. 
+- Filters out unnecessary words and focuses on key words.  
+- Covers various cybersecurity topics such as phishing, online safety and password security.   
+- Contains voice greeting
+- Randomized follow-up prompts to keep users engaged.
+- Handles empty or unclear input with a fallback response.
+- Detects and replies to emotional sentiments such as "worried", "scared", "curious", or "frustrated".                                                                                          
 
 ## How to use
 -Start the Chatbot by running the application  
@@ -37,6 +42,7 @@ Template: Console App C# Netframework
 ~Phishing  
 ~Safe browsing  
 ~SQL injection and more  
+-If you mention feeling worried, scared, or frustrated, the chatbot will respond empathetically
 -When done chatting, type "leave" to exit chat. 
 
 ## Example Questions
