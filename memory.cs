@@ -4,8 +4,11 @@ using System;
 
 namespace POE_part_2
 {
-    internal class memory
+    public class memory
     {
+        private string path;
+        public Dictionary<string, string> userData = new Dictionary<string, string>();
+
         public memory()
         {
             //get app path
@@ -13,41 +16,55 @@ namespace POE_part_2
             string new_path = Full_path.Replace("bin\\Debug\\", "");
             string path = Path.Combine(new_path, "memory.txt");
 
-            //check memory 
-            //List<string> memory_collected = loadMemory(path);  [Assigned the variable first makes it a constant]
-            var memory_collected = loadMemory(path);
+            // load memory
+            userData = loadMemory(path);
+        }
 
-            //check all stored
-            foreach (var check in memory_collected)
-            {
-                Console.WriteLine(check);
-            }
-            memory_collected.Add("Luna, What is password?");
-            //then save 
-            File.WriteAllLines(path, memory_collected);
-
-
-        }//end of const
-
-        //method to load memory and to check if the file exists 
-        private List<string> loadMemory(string path)
+        public Dictionary<string, string> loadMemory(string path)
         {
-            //check if the file exists
+            var data = new Dictionary<string, string>();
+
             if (File.Exists(path))
             {
-
-                //then return all values or data in file
-                return new List<string>(File.ReadAllLines(path));
+                var lines = File.ReadAllLines(path);
+                foreach (string line in lines)
+                {
+                    if (line.Contains("="))
+                    {
+                        // Split each line only at the first '=' to preserve values with '=' in them
+                        string[] parts = line.Split(new char[] { '=' }, 2);
+                        if (parts.Length == 2)
+                        {
+                            data.Add(parts[0], parts[1]); // store as-is without trimming
+                        }
+                    }
+                }
             }
             else
             {
-                //create text file
-                File.CreateText(path);
-                return new List<string>();
+                // Create the file if it does not exist
+                File.CreateText(path).Close();
             }
 
-        }// end of memory method
+            return data;
+        }
+        public void SaveMemory()
+        {
+            var lines = new List<string>();
+            foreach (KeyValuePair<string, string> entry in userData)
+            {
+                lines.Add(entry.Key + "=" + entry.Value);
+            }
+            File.WriteAllLines(path, lines);
+        }
 
+        public void SetData(string key, string value)
+        {
+            // Update or add a new key-value pair and save to file
+            userData[key] = value;
+            SaveMemory();
+        }
 
     }
 }
+

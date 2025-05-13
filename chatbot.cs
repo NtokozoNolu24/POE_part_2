@@ -21,16 +21,29 @@ namespace POE_part_2
         // Dictionary for extra randomized tips 
         private Dictionary<string, List<string>> extraTips = new Dictionary<string, List<string>>();
 
-      
+        // Dictionary to detect basic sentiment and respond empathetically
+        private Dictionary<string, string> sentimentResponses = new Dictionary<string, string>
+        {
+            { "worried", "AIChat:-> It's completely understandable to feel that way.\n" +
+                        " Let me share some tips to help you stay safe." },
+            { "scared", "AIChat:-> No need to panic. I'm here to guide you through staying secure online." },
+            { "curious", "AIChat:-> I'm glad you're interested!\n" +
+                         " Curiosity is the first step to learning more about cybersecurity. Ask away!" },
+            { "frustrated", "AIChat:-> I know it can be frustrating.\n" +
+                            " Cybersecurity can seem overwhelming, but I’m here to make it simpler for you." }
+        };
 
         public chatbot()
         {
+            //Extra tips for the user from the random_resp class
+            random_resp tips = new random_resp();
+
+            // Load tips from random_resp into chatbot's extraTips
+            extraTips = tips.Tips;
+
             //Call all methods in here
             stored_responses();
             ai_chat();
-
-            //Extra tips for the user from the random_resp class
-            random_resp tips = new random_resp();
 
         }//end of constructor
 
@@ -90,9 +103,12 @@ namespace POE_part_2
                 if (string.IsNullOrWhiteSpace(input))
                 {
                     Console.ForegroundColor = ConsoleColor.White;
-                    string followUpQuestion = followUps[random.Next(followUps.Count)];
-                    Console.WriteLine("AIChat:-> " + followUpQuestion);
+                    Console.WriteLine("AIChat:-> I'm not sure I understand. Can you try rephrasing?");
                 }
+
+                //This if statement will ask the user a follow-up question if the input is not empty
+                string followUpQuestion = followUps[random.Next(followUps.Count)];
+              
 
                 //to get response
                 string response = Response(input);
@@ -102,6 +118,7 @@ namespace POE_part_2
                 }
             }
         // This is the list of follow-up questions
+
         private List<string> followUps = new List<string>()
         {
             "Is there anything you'd like to ask me about cybersecurity?",
@@ -109,12 +126,20 @@ namespace POE_part_2
             "Don't hesitate to ask about phishing, malware, or online privacy!"
         };
 
+
+
         //then store responses using a method 
         //In this method, the base responses are stored in a dictionary and they identify multiple keywords
         private void stored_responses()
         {
-            string youResponse = "AIChat:-> I am great thanks!\nHow can I assist you today?";
+            string youResponse = "AIChat:-> I am great thanks!\n" +
+                                 "How can I assist you today?";
             baseResponses["you?"] = new List<string> {youResponse};
+            baseResponses["you"] = new List<string> { youResponse };
+
+            string firewallResponse = "AIChat:-> A firewall is a network security device that monitors and controls incoming\n" +
+                                      " and outgoing network traffic based on predetermined security rules.";
+            baseResponses["firewall"] = new List<string> {firewallResponse};
 
             string scamResponse = "AIChat:-> To avoid online scams, users should stay vigilant and skeptical of unsolicited messages,\n" +
                 " offers that seem too good to be true, or urgent requests for personal or financial information.\n" +
@@ -141,15 +166,16 @@ namespace POE_part_2
             baseResponses["malware?"] = new List<string> { malwareResponse };
             baseResponses["malwares"] = new List<string> { malwareResponse };
 
-            string onlineResponse =
+            string safeResponse =
             "AIChat:-> To stay safe online, use strong passwords, enable two-factor authentication,\n"+
             " avoid clicking on suspicious links, keep your software updated, \n" +
             " and be cautious about sharing personal information.";
-            baseResponses["online"] = new List<string> {onlineResponse };
-            baseResponses["online?"] = new List<string> { onlineResponse };
+            baseResponses["safe"] = new List<string> {safeResponse };
+            baseResponses["safety"] = new List<string> { safeResponse };
+
 
             string privacyResponse =
-            "AIChat:-> Limit personal info shared online, use strong passwords, VPNs, and adjust privacy settings.";
+            "AIChat:-> Limit personal information shared online, use strong passwords, VPNs, and adjust privacy settings.";
             baseResponses["privacy"] = new List<string>{privacyResponse};
 
             string purposeResponse =
@@ -187,7 +213,8 @@ namespace POE_part_2
             baseResponses["attack"] = new List<string> { attackResponse };
 
             string injectionResponse =
-            "AIChat:-> SQL injection is a code injection technique that exploits a security vulnerability in an application's software.\n" +
+            "AIChat:-> SQL injection is a code injection technique that exploits a security vulnerability\n" +
+            " in an application's software.\n" +
             " lets attackers manipulate databases by inserting malicious queries.";
             baseResponses["injection"] = new List<string>{injectionResponse};
             baseResponses["SQL injection"] = new List<string> { injectionResponse };
@@ -202,11 +229,9 @@ namespace POE_part_2
         // Words to ignore during keyword filtering
         private List<string> ignoreWords = new List<string>
         {
-            "tell", "online", "can", "i", "create", "stay", "me", "about", "what", "is", "how", "your"
+            "tell", "online", "can", "i", "create", "stay", "me", "about", "what", "is", "how", "your","are","more","again"
         };
         //end of ignore_words method
-
-        
 
         private string Response(string input)
         {
@@ -216,27 +241,69 @@ namespace POE_part_2
                 .Where(word => !ignoreWords.Contains(word))
                 .ToList();
 
+            string sentimentReply = null;
+            string baseReply = null;
+            string extraReply = "";
+
+            // Check for sentiment
+            foreach (var word in filteredWords)
+            {
+                if (sentimentResponses.ContainsKey(word))
+                {
+                    sentimentReply = sentimentResponses[word];
+                    break; // One sentiment is enough
+                }
+            }
+
+            // Check for tips explicitly asked for
+            foreach (var word in filteredWords)
+            {
+                if (extraTips.ContainsKey(word) && input.Contains("tip"))
+                {
+                    return "AIChat:-> Here's a tip on " + word + ": \n" +
+                           extraTips[word][random.Next(extraTips[word].Count)];
+                }
+            }
+
+            // Check for base/topic responses
             foreach (var word in filteredWords)
             {
                 if (baseResponses.ContainsKey(word))
                 {
-                    string baseReply = baseResponses[word][random.Next(baseResponses[word].Count)];
-                    string extraReply = "";
+                    baseReply = baseResponses[word][random.Next(baseResponses[word].Count)];
 
+                    // Add extra tip if available
                     if (extraTips.ContainsKey(word))
                     {
                         extraReply = "\n\nExtra Tip: " + extraTips[word][random.Next(extraTips[word].Count)];
                     }
 
-
-                    return baseReply + extraReply;
+                    break; // One base response is enough
                 }
             }
 
-            return "AIChat:-> I'm sorry, I don't understand that. Can you please rephrase your question?\n" +
-                   followUps[random.Next(followUps.Count)];
+            // Return both sentiment and topic response if both exist
+            if (sentimentReply != null && baseReply != null)
+            {
+                return sentimentReply + "\n\n" + baseReply + extraReply;
+            }
+
+            // Return only sentiment
+            if (sentimentReply != null)
+            {
+                return sentimentReply;
+            }
+
+            // Return only topic/base response
+            if (baseReply != null)
+            {
+                return baseReply + extraReply;
+            }
+
+            // If nothing matches, return a random follow-up
+            return followUps[random.Next(followUps.Count)];
         }
-         
-}//end of class
+
+    }//end of class
 }//end of namespace
 
