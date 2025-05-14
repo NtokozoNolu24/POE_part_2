@@ -40,8 +40,31 @@ namespace POE_part_2
             //online safety tips
             Tips["safe"] = new List<string>()
             {
-                "Regular backups ensure you won’t lose important files in a cyberattack."
-                
+                "Regular backups ensure you won’t lose important files in a cyberattack.",
+                "Avoid sharing personal information on public platforms.",
+            };
+
+            //social engineering tips
+            Tips["engineering"] = new List<string>()
+            {
+                "Be cautious of unsolicited requests for information.",
+                "Verify the identity of anyone asking for sensitive data.",
+                "Educate yourself about common social engineering tactics."
+            };
+
+            //sql injection tips
+            Tips["sql"] = new List<string>()
+            {
+                "Use parameterized queries to prevent SQL injection.",
+                "Validate and sanitize user inputs.",
+                "Regularly update your database management system."
+            };
+
+            //privacy tips
+            Tips["privacy"] = new List<string>()
+            {
+                "Regularly review and adjust privacy settings on apps \n" +
+                "and websites, and be cautious when granting permission. "
             };
         }
     }

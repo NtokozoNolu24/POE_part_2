@@ -7,18 +7,21 @@ namespace POE_part_2
     public class memory
     {
         private string path;
-        public Dictionary<string, string> userData = new Dictionary<string, string>();
+        public Dictionary<string, string> userData;
 
         public memory()
         {
+          
+            userData = new Dictionary<string, string>();
+
             //get app path
             string Full_path = AppDomain.CurrentDomain.BaseDirectory;
             string new_path = Full_path.Replace("bin\\Debug\\", "");
-            string path = Path.Combine(new_path, "memory.txt");
+            path = Path.Combine(new_path, "memory.txt");
 
             // load memory
             userData = loadMemory(path);
-        }
+        }//end of constructor
 
         public Dictionary<string, string> loadMemory(string path)
         {
@@ -48,6 +51,8 @@ namespace POE_part_2
 
             return data;
         }
+
+        // Save memory to file
         public void SaveMemory()
         {
             var lines = new List<string>();
@@ -57,14 +62,21 @@ namespace POE_part_2
             }
             File.WriteAllLines(path, lines);
         }
-
+        
         public void SetData(string key, string value)
         {
-            // Update or add a new key-value pair and save to file
-            userData[key] = value;
-            SaveMemory();
+            if (userData.ContainsKey(key))
+                userData[key] = value;
+            else
+                userData.Add(key, value);
         }
 
-    }
-}
+        public string GetData(string key)
+        {
+            return userData.ContainsKey(key) ? userData[key] : null;
+        }
+    }//end of class
+
+}//end of namespace
+
 

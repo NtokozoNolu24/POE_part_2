@@ -43,6 +43,7 @@ namespace POE_part_2
 
             //Call all methods in here
             stored_responses();
+            userMemory = new memory(); // Memory initialization
             ai_chat();
 
         }//end of constructor
@@ -75,8 +76,12 @@ namespace POE_part_2
             //call delegate and store username
             string username = getUserName();
 
+            //this is to remember username
+            userMemory.SetData("username", username); 
+            userMemory.SaveMemory();
+
             //AI response
-                Console.ForegroundColor = ConsoleColor.White;
+            Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("AIChat:-> Hi there " + username + "!" + " How are you today?");
 
                 Console.ForegroundColor = ConsoleColor.White;
@@ -88,10 +93,10 @@ namespace POE_part_2
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.Write(username + ":-> ");
-                    string input = Console.ReadLine().ToLower();
+                    string input = Console.ReadLine()?.ToLower() ?? "";
 
-                    //if "leave" is typed, then display message and end program
-                    if (input == "leave")
+                //if "leave" is typed, then display message and end program
+                if (input == "leave")
                     {
                         Console.ForegroundColor = ConsoleColor.White;
                         Console.WriteLine("AIChat:-> Thank you " + username + " for chatting! Stay safe online.");
@@ -111,12 +116,25 @@ namespace POE_part_2
               
 
                 //to get response
-                string response = Response(input);
-                    Console.ForegroundColor = ConsoleColor.White;
+                string response = string.IsNullOrWhiteSpace(input) ? RecallInterest() : Response(input);
+                Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine(response);
 
                 }
             }
+        private string RecallInterest()
+        {
+            // Ensure memory and dictionary are not null, and check key safely
+            if (userMemory != null &&
+                userMemory.userData != null &&
+                userMemory.userData.ContainsKey("interest"))
+            {
+                string interest = userMemory.userData["interest"];
+                return $"AIChat:-> As someone interested in {interest}, you might want to explore more on that topic. Any other questions?";
+            }
+
+            return "AIChat:-> I'm not sure I understand. Can you try rephrasing?";
+        }
         // This is the list of follow-up questions
 
         private List<string> followUps = new List<string>()
@@ -232,6 +250,8 @@ namespace POE_part_2
             "tell", "online", "can", "i", "create", "stay", "me", "about", "what", "is", "how", "your","are","more","again"
         };
         //end of ignore_words method
+
+        private memory userMemory;
 
         private string Response(string input)
         {
